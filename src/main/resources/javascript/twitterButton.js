@@ -27,7 +27,7 @@ twttr.ready(function (twttr) {
         var baseURL = 'http://localhost:8080/jahia/modules/marketing-factory-core/proxy/ACMESPACE/cxs';
 
         var defaultErrorCallback = function () {
-            alert('Woops, there was an error making the request. CXS: ' + xhr.status + " ERROR: " + xhr.statusText);
+            alert('There was an error making the request.');
         };
 
         function createCORSRequest(method, url, shouldBeAsync) {
