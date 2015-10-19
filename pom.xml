@@ -81,16 +81,16 @@
         <version>7.1.0.0</version>
     </parent>
 
-    <artifactId>unomi-integration</artifactId>
-    <name>Sample unomi integration</name>
+    <artifactId>unomi-tweet-button</artifactId>
+    <name>Unomi-enabled tweet button</name>
     <version>1.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <description>This is a simple Apache unomi integration project. This requires Digital Factory with Marketing Factory activated on the target web project.</description>
 
     <scm>
-        <connection>scm:git:git@github.com:metacosm/unomi-integration.git</connection>
-        <developerConnection>scm:git:git@github.com:metacosm/unomi-integration.git</developerConnection>
-        <url>http://git@github.com:metacosm/unomi-integration.git</url>
+        <connection>scm:git:git@github.com:metacosm/unomi-tweet-button.git</connection>
+        <developerConnection>scm:git:git@github.com:metacosm/unomi-tweet-button.git</developerConnection>
+        <url>http://git@github.com:metacosm/unomi-tweet-button.git</url>
     </scm>
 
     <repositories>
