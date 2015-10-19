@@ -93,6 +93,14 @@
         <url>http://git@github.com:metacosm/unomi-tweet-button.git</url>
     </scm>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.jahia.modules</groupId>
+            <artifactId>marketing-factory-core</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+
     <repositories>
         <repository>
             <id>jahia-public</id>
@@ -116,7 +124,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Jahia-Depends>default</Jahia-Depends>
+                        <Jahia-Depends>default,marketing-factory-core</Jahia-Depends>
                     </instructions>
                 </configuration>
             </plugin>

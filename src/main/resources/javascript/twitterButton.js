@@ -22,9 +22,7 @@ twttr.ready(function (twttr) {
     twttr.events.bind('tweet', function (event) {
         // retrieve user profile and check if it already has the properties we're interested in
 
-        // TODO: fix URL to properly access CXS instead of going through DF proxy
-        //var baseURL = window.digitalData.contextServerPublicUrl + '/cxs';
-        var baseURL = 'http://localhost:8080/jahia/modules/marketing-factory-core/proxy/ACMESPACE/cxs';
+        var baseURL = window.digitalData.contextServerPublicUrl + '/cxs';
 
         var defaultErrorCallback = function () {
             alert('There was an error making the request.');
@@ -34,10 +32,6 @@ twttr.ready(function (twttr) {
             var async = shouldBeAsync || true;
             var xhr = new XMLHttpRequest();
             if ("withCredentials" in xhr) {
-
-                // Check if the XMLHttpRequest object has a "withCredentials" property.
-                // "withCredentials" only exists on XMLHTTPRequest2 objects.
-                xhr.withCredentials = true;
                 xhr.open(method, url, async);
 
             } else if (typeof XDomainRequest != "undefined") {
@@ -71,7 +65,7 @@ twttr.ready(function (twttr) {
                 }
             };
 
-            //xhr.setRequestHeader("Authorization", "Basic a2FyYWY6a2FyYWY="); // authenticate with context server
+            xhr.setRequestHeader("Authorization", CXSAuthorizationHeader); // authenticate with context server
             if (!data) {
                 xhr.setRequestHeader("Content-Type", "text/plain;charset=UTF-8"); // Use text/plain to avoid CORS preflight
                 xhr.send();
