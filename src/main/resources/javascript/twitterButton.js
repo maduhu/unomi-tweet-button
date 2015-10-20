@@ -20,101 +20,75 @@ twttr.ready(function (twttr) {
     // Now bind our custom intent events
     //twttr.events.bind('click', clickEventToAnalytics);
     twttr.events.bind('tweet', function (event) {
-        // retrieve user profile and check if it already has the properties we're interested in
-
-        var baseURL = window.digitalData.contextServerPublicUrl + '/cxs';
 
         var defaultErrorCallback = function () {
             alert('There was an error making the request.');
         };
 
-        function createCORSRequest(method, url, shouldBeAsync) {
-            var async = shouldBeAsync || true;
+        function contextRequest(successCallback, errorCallback, payload) {
+            data = JSON.stringify(payload);
+            var url = window.digitalData.contextServerPublicUrl + '/context.json?sessionId=' + cxs.sessionId;
             var xhr = new XMLHttpRequest();
-            if ("withCredentials" in xhr) {
-                xhr.open(method, url, async);
-
+            var isGet = data.length < 100;
+            if (isGet) {
+                xhr.withCredentials = true;
+                xhr.open("GET", url + "&payload=" + encodeURIComponent(data), true);
+            } else if ("withCredentials" in xhr) {
+                xhr.open("POST", url, true);
+                xhr.withCredentials = true;
             } else if (typeof XDomainRequest != "undefined") {
-
-                // Otherwise, check if XDomainRequest.
-                // XDomainRequest only exists in IE, and is IE's way of making CORS requests.
                 xhr = new XDomainRequest();
-                xhr.open(method, url, async);
-
-            } else {
-
-                // Otherwise, CORS is not supported by the browser.
-                xhr = null;
-
+                xhr.open("POST", url);
             }
-            return xhr;
-        }
-
-        function performXHRRequest(url, successCallback, errorCallback, data, async) {
-            var method = data ? 'POST' : 'GET';
-            var xhr = createCORSRequest(method, baseURL + url, async);
-            if (!xhr) {
-                alert('CORS not supported');
-                return;
-            }
-
-            xhr.onerror = errorCallback || defaultErrorCallback;
             xhr.onreadystatechange = function () {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    successCallback(JSON.parse(xhr.responseText));
-                }
-            };
-
-            xhr.setRequestHeader("Authorization", CXSAuthorizationHeader); // authenticate with context server
-            if (!data) {
-                xhr.setRequestHeader("Content-Type", "text/plain;charset=UTF-8"); // Use text/plain to avoid CORS preflight
-                xhr.send();
-            } else {
-                xhr.setRequestHeader("Content-Type", "application/json");
-                xhr.send(JSON.stringify(data));
-            }
-        }
-
-        // check if we already have defined the property type we're interested in
-        performXHRRequest('/profiles/properties/tags/social', function (data) {
-            for (var i in data) {
-                if (data[i].itemId === 'tweetNb') {
-                    // we found it so abort search
+                if (xhr.readyState != 4) {
                     return;
                 }
-            }
-
-            // we haven't found the property type, so create it
-            var propertyType = {
-                itemId: 'tweetNb',
-                itemType: 'propertyType',
-                metadata: {
-                    id: 'tweetNb',
-                    name: 'tweetNb'
-                },
-                tags: ['social'],
-                target: 'profiles',
-                type: 'text',
-                multivalued: true
+                if (xhr.status == 200) {
+                    var response = xhr.responseText ? JSON.parse(xhr.responseText) : undefined;
+                    successCallback(response);
+                } else {
+                    console.log("contextserver: " + xhr.status + " ERROR: " + xhr.statusText);
+                    if (errorCallback) {
+                        errorCallback(xhr);
+                    }
+                }
             };
+            xhr.setRequestHeader("Content-Type", "text/plain;charset=UTF-8"); // Use text/plain to avoid CORS preflight
+            if (isGet) {
+                xhr.send();
+            } else {
+                xhr.send(data);
+            }
+        }
 
-            performXHRRequest('/profiles/properties', function (data) {
-                console.log("Property type successfully added!");
-            }, defaultErrorCallback, propertyType, false);
 
-        }, defaultErrorCallback, null, false);
+        var contextPayload = {
+            source: {
+                itemType: 'page',
+                scope: window.digitalData.scope,
+                itemId: window.digitalData.page.pageInfo.pageID,
+                properties: window.digitalData.page
+            },
+            events: [
+                {
+                    eventType: 'tweetEvent',
+                    scope: window.cxsContext.scope,
+                    source: {
+                        itemType: 'page',
+                        scope: window.digitalData.scope,
+                        itemId: window.digitalData.page.pageInfo.pageID
+                    }
+                }
+            ],
+            requiredProfileProperties: [
+                'tweetNb'
+            ]
+        };
 
-        // retrieve profile
-        performXHRRequest('/profiles/' + cxs.profileId, function (profile) {
-            var properties = profile.properties;
-            var tweetNb = properties.tweetNb || 0;
-            profile.properties.tweetNb = tweetNb + 1;
-
-            // and update it with the new value for tweetNb
-            performXHRRequest('/profiles', function (profile) {
-                console.log("Profile sucessfully updated with tweetNB = " + profile.properties.tweetNb);
-            }, defaultErrorCallback, profile)
-        });
+        contextRequest(function (response) {
+            console.log("Profile sucessfully updated with tweetNB = " + response.profileProperties.tweetNb);
+        }, defaultErrorCallback, contextPayload);
     });
     //twttr.events.bind('retweet', retweetIntentToAnalytics);
     //twttr.events.bind('favorite', favIntentToAnalytics);
