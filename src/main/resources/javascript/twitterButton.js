@@ -73,7 +73,7 @@ twttr.ready(function (twttr) {
             events: [
                 {
                     eventType: 'tweetEvent',
-                    scope: window.cxsContext.scope,
+                    scope: window.digitalData.scope,
                     source: {
                         itemType: 'page',
                         scope: window.digitalData.scope,
