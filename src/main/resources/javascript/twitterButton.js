@@ -77,17 +77,19 @@ twttr.ready(function (twttr) {
                     source: {
                         itemType: 'page',
                         scope: window.digitalData.scope,
-                        itemId: window.digitalData.page.pageInfo.pageID
+                        itemId: window.digitalData.page.pageInfo.pageID,
+                        properties: window.digitalData.page
                     }
                 }
             ],
             requiredProfileProperties: [
-                'tweetNb'
+                'tweetNb',
+                'tweetedFrom'
             ]
         };
 
         contextRequest(function (response) {
-            console.log("Profile sucessfully updated with tweetNB = " + response.profileProperties.tweetNb);
+            console.log("Profile sucessfully updated with tweetNB = " + response.profileProperties.tweetNb + " and tweetedFrom = " + response.profileProperties.tweetedFrom);
         }, defaultErrorCallback, contextPayload);
     });
     //twttr.events.bind('retweet', retweetIntentToAnalytics);
