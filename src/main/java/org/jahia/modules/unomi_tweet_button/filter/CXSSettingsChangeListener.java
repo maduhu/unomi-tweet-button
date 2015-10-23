@@ -71,77 +71,36 @@
  */
 package org.jahia.modules.unomi_tweet_button.filter;
 
-import org.apache.commons.codec.binary.Base64;
-import org.jahia.exceptions.JahiaRuntimeException;
-import org.jahia.modules.marketingfactory.admin.ContextServerSettings;
-import org.jahia.modules.marketingfactory.admin.ContextServerSettingsService;
-import org.jahia.services.render.RenderContext;
-import org.jahia.services.render.Resource;
-import org.jahia.services.render.filter.AbstractFilter;
-import org.jahia.services.render.filter.RenderChain;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationListener;
+import org.jahia.services.content.DefaultEventListener;
+import org.jahia.services.content.ExternalEventListener;
 
-import java.io.UnsupportedEncodingException;
+import javax.jcr.observation.Event;
+import javax.jcr.observation.EventIterator;
 
 /**
- * A filter to inject in the global javascript scope a {@code CXSAuthorizationHeader} variable which value is a Basic Auth header suitable for authentication with the context
- * server.
+ * A listener of context server settings changes so that we can tell the filter to update its authentication header.
  *
  * @author Christophe Laprun
  */
-public class CXSSettingsInjectorFilter extends AbstractFilter implements ApplicationListener<ApplicationEvent> {
-    private static final Logger logger = LoggerFactory.getLogger(CXSSettingsInjectorFilter.class);
-    private static final String CXSAUTHORIZATION_HEADER = "CXSAuthorizationHeader";
-    private ContextServerSettingsService contextServerSettingsService;
-    boolean done = false;
+public class CXSSettingsChangeListener extends DefaultEventListener implements ExternalEventListener {
+    private CXSSettingsInjectorFilter filter;
 
     @Override
-    public String execute(String previousOut, RenderContext renderContext, Resource resource, RenderChain chain) throws Exception {
-        if (!done) {
-            final String siteKey = renderContext.getSite().getSiteKey();
-            ContextServerSettings contextServerSettings = contextServerSettingsService.getSettings(siteKey);
-
-            if (contextServerSettings == null) {
-                // force a reload of settings
-                contextServerSettingsService.afterPropertiesSet();
-
-                // and re-attempt to get the settings
-                contextServerSettings = contextServerSettingsService.getSettings(siteKey);
-
-                if (contextServerSettings == null) {
-                    logger.error("Couldn't retrieve the settings for site " + siteKey + ". The twitter button component won't be working.");
-                    return previousOut;
-                }
-            }
-
-            previousOut += "<script type=\"text/javascript\">var " + CXSAUTHORIZATION_HEADER + " ='" + generateBasicAuth(contextServerSettings) + "';</script>";
-            done = true;
-        }
-        return previousOut;
-    }
-
-    private String generateBasicAuth(ContextServerSettings contextServerSettings) {
-        String username = contextServerSettings.getContextServerUsername() + ":" + contextServerSettings.getContextServerPassword();
-        byte[] usernameBytes;
-        try {
-            usernameBytes = username.getBytes("UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            throw new JahiaRuntimeException(e);
-        }
-        return "Basic " + Base64.encodeBase64String(usernameBytes);
-    }
-
-    public void setCxsSettingsService(ContextServerSettingsService cxsSettingsService) {
-        this.contextServerSettingsService = cxsSettingsService;
+    public int getEventTypes() {
+        return Event.PROPERTY_ADDED + Event.PROPERTY_CHANGED + Event.PROPERTY_REMOVED + Event.NODE_ADDED + Event.NODE_REMOVED;
     }
 
     @Override
-    public void onApplicationEvent(ApplicationEvent applicationEvent) {
-        if (applicationEvent instanceof ContextServerSettingsService.ContextServerSettingsChangedEvent) {
-            done = false;
-        }
+    public String[] getNodeTypes() {
+        return new String[]{"wemnt:contextServerSettings"};
+    }
+
+    @Override
+    public void onEvent(EventIterator events) {
+        filter.done = false;
+    }
+
+    public void setFilter(CXSSettingsInjectorFilter filter) {
+        this.filter = filter;
     }
 }

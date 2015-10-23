@@ -3,11 +3,15 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean class="org.jahia.modules.unomi_tweet_button.filter.CXSSettingsInjectorFilter">
+    <bean id="cxsSettingsInjectorFilter" class="org.jahia.modules.unomi_tweet_button.filter.CXSSettingsInjectorFilter">
         <property name="description" value="Injects CXS settings into the JS global scope"/>
         <property name="applyOnModes" value="edit,live,preview"/>
         <property name="priority" value="2"/>
         <property name="cxsSettingsService" ref="contextServerSettingsService"/>
+    </bean>
+
+    <bean class="org.jahia.modules.unomi_tweet_button.filter.CXSSettingsChangeListener">
+        <property name="filter" ref="cxsSettingsInjectorFilter"/>
     </bean>
 
     <bean id="contextServerSettingsService" class="org.jahia.modules.marketingfactory.admin.ContextServerSettingsService" factory-method="getInstance"/>

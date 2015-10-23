@@ -78,13 +78,13 @@ twttr.ready(function (twttr) {
         // check if we already have defined the property type we're interested in
         performXHRRequest('/profiles/properties/tags/social', function (data) {
             for (var i in data) {
-                if (data[i].itemId === 'tweetNb') {
+                if (data[i].itemId === 'tweetNb' && data[i].itemId === 'tweetedFrom') {
                     // we found it so abort search
                     return;
                 }
             }
 
-            // we haven't found the property type, so create it
+            // we haven't found the property types, so create them
             var propertyType = {
                 itemId: 'tweetNb',
                 itemType: 'propertyType',
@@ -94,12 +94,28 @@ twttr.ready(function (twttr) {
                 },
                 tags: ['social'],
                 target: 'profiles',
-                type: 'text',
+                type: 'integer'
+            };
+
+            performXHRRequest('/profiles/properties', function (data) {
+                console.log("Property type tweetNb successfully added!");
+            }, defaultErrorCallback, propertyType, false);
+
+            propertyType = {
+                itemId: 'tweetedFrom',
+                itemType: 'propertyType',
+                metadata: {
+                    id: 'tweetedFrom',
+                    name: 'tweetedFrom'
+                },
+                tags: ['social'],
+                target: 'profiles',
+                type: 'string',
                 multivalued: true
             };
 
             performXHRRequest('/profiles/properties', function (data) {
-                console.log("Property type successfully added!");
+                console.log("Property type tweetedFrom successfully added!");
             }, defaultErrorCallback, propertyType, false);
 
         }, defaultErrorCallback, null, false);
@@ -108,11 +124,21 @@ twttr.ready(function (twttr) {
         performXHRRequest('/profiles/' + cxs.profileId, function (profile) {
             var properties = profile.properties;
             var tweetNb = properties.tweetNb || 0;
+            var tweetedFrom = properties.tweetedFrom || [];
             profile.properties.tweetNb = tweetNb + 1;
+            var pageInfo = window.digitalData.page.pageInfo;
+            if (pageInfo) {
+                var url = pageInfo.destinationURL;
+                if (url) {
+                    tweetedFrom.push(url);
+                    profile.properties.tweetedFrom = tweetedFrom;
+                }
+            }
 
             // and update it with the new value for tweetNb
             performXHRRequest('/profiles', function (profile) {
-                console.log("Profile sucessfully updated with tweetNB = " + profile.properties.tweetNb);
+                console.log("Profile successfully updated with tweetNB = " + profile.properties.tweetNb);
+                console.log("Profile successfully updated with tweetedFrom = " + profile.properties.tweetedFrom);
             }, defaultErrorCallback, profile)
         });
     });
