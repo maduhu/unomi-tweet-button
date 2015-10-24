@@ -7,6 +7,7 @@
         <property name="description" value="Injects CXS settings into the JS global scope"/>
         <property name="applyOnModes" value="edit,live,preview"/>
         <property name="priority" value="2"/>
+        <property name="applyOnConfigurations" value="page"/>
         <property name="cxsSettingsService" ref="contextServerSettingsService"/>
     </bean>
 

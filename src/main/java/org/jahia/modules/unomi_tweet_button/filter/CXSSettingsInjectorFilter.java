@@ -100,26 +100,23 @@ public class CXSSettingsInjectorFilter extends AbstractFilter implements Applica
 
     @Override
     public String execute(String previousOut, RenderContext renderContext, Resource resource, RenderChain chain) throws Exception {
-        if (!done) {
-            final String siteKey = renderContext.getSite().getSiteKey();
-            ContextServerSettings contextServerSettings = contextServerSettingsService.getSettings(siteKey);
+        final String siteKey = renderContext.getSite().getSiteKey();
+        ContextServerSettings contextServerSettings = contextServerSettingsService.getSettings(siteKey);
+
+        if (contextServerSettings == null) {
+            // force a reload of settings
+            contextServerSettingsService.afterPropertiesSet();
+
+            // and re-attempt to get the settings
+            contextServerSettings = contextServerSettingsService.getSettings(siteKey);
 
             if (contextServerSettings == null) {
-                // force a reload of settings
-                contextServerSettingsService.afterPropertiesSet();
-
-                // and re-attempt to get the settings
-                contextServerSettings = contextServerSettingsService.getSettings(siteKey);
-
-                if (contextServerSettings == null) {
-                    logger.error("Couldn't retrieve the settings for site " + siteKey + ". The twitter button component won't be working.");
-                    return previousOut;
-                }
+                logger.error("Couldn't retrieve the settings for site " + siteKey + ". The twitter button component won't be working.");
+                return previousOut;
             }
-
-            previousOut += "<script type=\"text/javascript\">var " + CXSAUTHORIZATION_HEADER + " ='" + generateBasicAuth(contextServerSettings) + "';</script>";
-            done = true;
         }
+
+        previousOut += "<script type=\"text/javascript\">var " + CXSAUTHORIZATION_HEADER + " ='" + generateBasicAuth(contextServerSettings) + "';</script>";
         return previousOut;
     }
 
