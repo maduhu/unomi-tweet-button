@@ -28,18 +28,17 @@ twttr.ready(function (twttr) {
             alert('There was an error making the request.');
         };
 
-        function createCORSRequest(method, url, shouldBeAsync) {
-            var async = shouldBeAsync || true;
+        function createCORSRequest(method, url) {
             var xhr = new XMLHttpRequest();
             if ("withCredentials" in xhr) {
-                xhr.open(method, url, async);
+                xhr.open(method, url);
 
             } else if (typeof XDomainRequest != "undefined") {
 
                 // Otherwise, check if XDomainRequest.
                 // XDomainRequest only exists in IE, and is IE's way of making CORS requests.
                 xhr = new XDomainRequest();
-                xhr.open(method, url, async);
+                xhr.open(method, url);
 
             } else {
 
@@ -50,9 +49,9 @@ twttr.ready(function (twttr) {
             return xhr;
         }
 
-        function performXHRRequest(url, successCallback, errorCallback, data, async) {
+        function performXHRRequest(url, successCallback, errorCallback, data) {
             var method = data ? 'POST' : 'GET';
-            var xhr = createCORSRequest(method, baseURL + url, async);
+            var xhr = createCORSRequest(method, baseURL + url);
             if (!xhr) {
                 alert('CORS not supported');
                 return;
