@@ -106,8 +106,7 @@ twttr.ready(function (twttr) {
                     tags: ['social'],
                     target: 'profiles',
                     type: 'integer'
-                },
-                false);
+                });
             performXHRRequest('/profiles/properties',
                 function (data) {
                     console.log("Property type tweetedFrom successfully added!");
@@ -124,15 +123,14 @@ twttr.ready(function (twttr) {
                     target: 'profiles',
                     type: 'string',
                     multivalued: true
-                },
-                false);
+                });
         };
 
         // call in sequence to make sure that property types are created before we update the profile
         async.series([
             // check first if we already have defined the property types we're interested in and create them if needed
             function (callback) {
-                performXHRRequest('/profiles/properties/tags/social', createTypesIfNeeded, defaultErrorCallback, null, false);
+                performXHRRequest('/profiles/properties/tags/social', createTypesIfNeeded, defaultErrorCallback);
                 callback(null, null);
             },
             // then retrieve and update profile
