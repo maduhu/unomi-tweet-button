@@ -81,8 +81,6 @@ import org.jahia.services.render.filter.AbstractFilter;
 import org.jahia.services.render.filter.RenderChain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationListener;
 
 import java.io.UnsupportedEncodingException;
 
@@ -92,7 +90,7 @@ import java.io.UnsupportedEncodingException;
  *
  * @author Christophe Laprun
  */
-public class CXSSettingsInjectorFilter extends AbstractFilter implements ApplicationListener<ApplicationEvent> {
+public class CXSSettingsInjectorFilter extends AbstractFilter {
     private static final Logger logger = LoggerFactory.getLogger(CXSSettingsInjectorFilter.class);
     private static final String CXSAUTHORIZATION_HEADER = "CXSAuthorizationHeader";
     private ContextServerSettingsService contextServerSettingsService;
@@ -133,12 +131,5 @@ public class CXSSettingsInjectorFilter extends AbstractFilter implements Applica
 
     public void setCxsSettingsService(ContextServerSettingsService cxsSettingsService) {
         this.contextServerSettingsService = cxsSettingsService;
-    }
-
-    @Override
-    public void onApplicationEvent(ApplicationEvent applicationEvent) {
-        if (applicationEvent instanceof ContextServerSettingsService.ContextServerSettingsChangedEvent) {
-            done = false;
-        }
     }
 }
