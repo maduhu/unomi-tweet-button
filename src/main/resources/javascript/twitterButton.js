@@ -74,72 +74,94 @@ twttr.ready(function (twttr) {
             }
         }
 
-        // check if we already have defined the property type we're interested in
-        performXHRRequest('/profiles/properties/tags/social', function (data) {
+
+        var createTypesIfNeeded = function (data) {
+            var foundTweetNb, foundTweetedFrom = false;
             for (var i in data) {
-                if (data[i].itemId === 'tweetNb' && data[i].itemId === 'tweetedFrom') {
-                    // we found it so abort search
+                if (data[i].itemId === 'tweetNb') {
+                    foundTweetNb = true;
+                } else if (data[i].itemId === 'tweetedFrom') {
+                    foundTweetedFrom = true;
+                }
+
+                if (foundTweetNb && foundTweetedFrom) {
+                    // we found the property types, so abort search and return
                     return;
                 }
             }
 
             // we haven't found the property types, so create them
-            var propertyType = {
-                itemId: 'tweetNb',
-                itemType: 'propertyType',
-                metadata: {
-                    id: 'tweetNb',
-                    name: 'tweetNb'
+            performXHRRequest('/profiles/properties',
+                function (data) {
+                    console.log("Property type tweetNb successfully added!");
                 },
-                tags: ['social'],
-                target: 'profiles',
-                type: 'integer'
-            };
-
-            performXHRRequest('/profiles/properties', function (data) {
-                console.log("Property type tweetNb successfully added!");
-            }, defaultErrorCallback, propertyType, false);
-
-            propertyType = {
-                itemId: 'tweetedFrom',
-                itemType: 'propertyType',
-                metadata: {
-                    id: 'tweetedFrom',
-                    name: 'tweetedFrom'
+                defaultErrorCallback,
+                {
+                    itemId: 'tweetNb',
+                    itemType: 'propertyType',
+                    metadata: {
+                        id: 'tweetNb',
+                        name: 'tweetNb'
+                    },
+                    tags: ['social'],
+                    target: 'profiles',
+                    type: 'integer'
                 },
-                tags: ['social'],
-                target: 'profiles',
-                type: 'string',
-                multivalued: true
-            };
+                false);
+            performXHRRequest('/profiles/properties',
+                function (data) {
+                    console.log("Property type tweetedFrom successfully added!");
+                },
+                defaultErrorCallback,
+                {
+                    itemId: 'tweetedFrom',
+                    itemType: 'propertyType',
+                    metadata: {
+                        id: 'tweetedFrom',
+                        name: 'tweetedFrom'
+                    },
+                    tags: ['social'],
+                    target: 'profiles',
+                    type: 'string',
+                    multivalued: true
+                },
+                false);
+        };
 
-            performXHRRequest('/profiles/properties', function (data) {
-                console.log("Property type tweetedFrom successfully added!");
-            }, defaultErrorCallback, propertyType, false);
+        // call in sequence to make sure that property types are created before we update the profile
+        async.series([
+            // check first if we already have defined the property types we're interested in and create them if needed
+            function (callback) {
+                performXHRRequest('/profiles/properties/tags/social', createTypesIfNeeded, defaultErrorCallback, null, false);
+                callback(null, null);
+            },
+            // then retrieve and update profile
+            function (callback) {
+                performXHRRequest('/profiles/' + cxs.profileId, function (profile) {
+                    var properties = profile.properties;
+                    var tweetNb = properties.tweetNb || 0;
+                    var tweetedFrom = properties.tweetedFrom || [];
+                    profile.properties.tweetNb = tweetNb + 1;
+                    var pageInfo = window.digitalData.page.pageInfo;
+                    if (pageInfo) {
+                        var url = pageInfo.destinationURL;
+                        if (url) {
+                            tweetedFrom.push(url);
+                            profile.properties.tweetedFrom = tweetedFrom;
+                        }
+                    }
 
-        }, defaultErrorCallback, null, false);
-
-        // retrieve profile
-        performXHRRequest('/profiles/' + cxs.profileId, function (profile) {
-            var properties = profile.properties;
-            var tweetNb = properties.tweetNb || 0;
-            var tweetedFrom = properties.tweetedFrom || [];
-            profile.properties.tweetNb = tweetNb + 1;
-            var pageInfo = window.digitalData.page.pageInfo;
-            if (pageInfo) {
-                var url = pageInfo.destinationURL;
-                if (url) {
-                    tweetedFrom.push(url);
-                    profile.properties.tweetedFrom = tweetedFrom;
-                }
+                    // and update it with the new value for tweetNb
+                    performXHRRequest('/profiles', function (profile) {
+                        console.log("Profile successfully updated with tweetNB = " + profile.properties.tweetNb);
+                        console.log("Profile successfully updated with tweetedFrom = " + profile.properties.tweetedFrom);
+                    }, defaultErrorCallback, profile)
+                });
+                callback(null, null);
             }
+        ]);
 
-            // and update it with the new value for tweetNb
-            performXHRRequest('/profiles', function (profile) {
-                console.log("Profile successfully updated with tweetNB = " + profile.properties.tweetNb);
-                console.log("Profile successfully updated with tweetedFrom = " + profile.properties.tweetedFrom);
-            }, defaultErrorCallback, profile)
-        });
+
     });
     //twttr.events.bind('retweet', retweetIntentToAnalytics);
     //twttr.events.bind('favorite', favIntentToAnalytics);
