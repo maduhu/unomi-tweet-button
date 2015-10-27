@@ -26,7 +26,7 @@ twttr.ready(function (twttr) {
         };
 
         function contextRequest(successCallback, errorCallback, payload) {
-            data = JSON.stringify(payload);
+            var data = JSON.stringify(payload);
             var url = window.digitalData.contextServerPublicUrl + '/context.json?sessionId=' + cxs.sessionId;
             var xhr = new XMLHttpRequest();
             var isGet = data.length < 100;
