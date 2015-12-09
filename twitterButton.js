@@ -15,6 +15,24 @@ window.twttr = (function (d, s, id) {
     return t;
 }(document, "script", "twitter-wjs"));
 
+// Load the context server script asynchronously
+window.cxs = (function (document, elementToCreate, id) {
+    var js, fjs = document.getElementsByTagName(elementToCreate)[0], cxs = window.cxs || {};
+    if (document.getElementById(id)) return;
+    js = document.createElement(elementToCreate);
+    js.id = id;
+    js.src = "http://localhost:8181/context.js";
+    js.type = "text/javascript";
+    fjs.parentNode.insertBefore(js, fjs);
+
+    cxs._e = [];
+    cxs.ready = function (f) {
+        cxs._e.push(f);
+    };
+
+    return cxs;
+}(document, 'script', 'context'));
+
 // Wait for the asynchronous resources to load
 twttr.ready(function (twttr) {
     // Now bind our custom intent events
@@ -27,7 +45,7 @@ twttr.ready(function (twttr) {
 
         function contextRequest(successCallback, errorCallback, payload) {
             var data = JSON.stringify(payload);
-            var url = window.digitalData.contextServerPublicUrl + '/context.json?sessionId=' + cxs.sessionId;
+            var url = 'http://localhost:8181/context.json?sessionId=' + window.cxs.sessionId;
             var xhr = new XMLHttpRequest();
             var isGet = data.length < 100;
             if (isGet) {
@@ -62,24 +80,23 @@ twttr.ready(function (twttr) {
             }
         }
 
-
+        var scope = 'unomi-tweet-button-sample';
+        var itemId = btoa(window.location.href);
+        var source = {
+            itemType: 'page',
+            scope: scope,
+            itemId: itemId,
+            properties: {
+                url: window.location.href
+            }
+        };
         var contextPayload = {
-            source: {
-                itemType: 'page',
-                scope: window.digitalData.scope,
-                itemId: window.digitalData.page.pageInfo.pageID,
-                properties: window.digitalData.page
-            },
+            source: source,
             events: [
                 {
                     eventType: 'tweetEvent',
-                    scope: window.digitalData.scope,
-                    source: {
-                        itemType: 'page',
-                        scope: window.digitalData.scope,
-                        itemId: window.digitalData.page.pageInfo.pageID,
-                        properties: window.digitalData.page
-                    }
+                    scope: scope,
+                    source: source
                 }
             ],
             requiredProfileProperties: [
