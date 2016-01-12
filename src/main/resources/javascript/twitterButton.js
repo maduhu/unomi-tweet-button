@@ -103,7 +103,7 @@ twttr.ready(function (twttr) {
                         id: 'tweetNb',
                         name: 'tweetNb'
                     },
-                    tags: ['social', 'socialProfileProperties'],
+                    tags: ['social', 'personalProfileProperties'],
                     target: 'profiles',
                     type: 'integer'
                 });
@@ -119,7 +119,7 @@ twttr.ready(function (twttr) {
                         id: 'tweetedFrom',
                         name: 'tweetedFrom'
                     },
-                    tags: ['social', 'socialProfileProperties'],
+                    tags: ['social', 'personalProfileProperties'],
                     target: 'profiles',
                     type: 'string',
                     multivalued: true
